@@ -1,72 +1,10 @@
-<?php
-
-$playlistId = isset($_GET['playlistId']) ? $_GET['playlistId'] : null;
-$totalSize = 0;
-
-if ($playlistId === null) {
-    echo "ID não informado na URL.";
-} else {
-    $curl = curl_init();
-
-    curl_setopt_array($curl, array(
-        CURLOPT_URL => 'https://api.4yousee.com.br/v1/playlists/' . $playlistId,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'GET',
-        CURLOPT_HTTPHEADER => array(
-            'Secret-Token: 809ea74915c0fdc86f9844f8960a65bf'
-        ),
-    ));
-
-    $response = curl_exec($curl);
-    curl_close($curl);
-    $data = json_decode($response, true);
-
-    if (isset($data["items"]) && is_array($data["items"])) {
-        // Playlist pai
-
-        foreach ($data["items"] as $item) {
-            if (isset($item["type"]) && $item["type"] === "carousel") {
-                // Exibe o "name" e o tamanho do campo "sequence" para cada item
-
-
-                // Verifica se o campo "sequence" existe e é um array
-                if (isset($item["sequence"]) && is_array($item["sequence"])) {
-                    // Verifica se a palavra "Comunicado" ou "Publicidade" está presente no nome
-                    if (stripos($item["name"], "Comunicado") !== false || stripos($item["name"], "Publicidade") !== false) {
-                        $itemSize = sizeof($item["sequence"]) * 2;
-                    } else {
-                        $itemSize = sizeof($item["sequence"]);
-                    }
-
-
-                    $totalSize += $itemSize;
-                } else {
-                    // Se não for um array, o tamanho é 1
-
-                    $totalSize += 1;
-                }
-            }
-        }
-    }
-}
-
-?>
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <link rel="stylesheet" href="index.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
     <style>
         .red-text {
             color: red;
@@ -75,63 +13,147 @@ if ($playlistId === null) {
         .green-text {
             color: green;
         }
+
+        .scene {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+
+        .title {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
     </style>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="index.css">
 </head>
 
 <body>
-    <div class="scene-1">
+    <div class="container mt-3">
+        <table class="table table-hover table-striped">
+            <tr class="row w-100">
+                <!-- NOME -->
+                <th class="col">Nome da Playlist</th>
+                <!-- Publicidades -->
+                <th class="col">Publicidades</th>
+                <!-- Comunicados -->
+                <th class="col">Comunicados</th>
+                <!-- Notícias -->
+                <th class="col">Notícias</th>
+                <!-- Total -->
+                <th class="col">Total</th>
+            </tr>
+            <?php
+            $playlistIds = [780, 767];
+            date_default_timezone_set('America/Sao_Paulo');
+            $today = date('Y-m-d H:i:s');
 
-        <DIV class="title">
-            <h2 class="playlist">Playlist : <SPAN><?php echo isset($data["name"]) ? $data["name"] : ''; ?></SPAN> </h2>
-            <br>
-            <h2 class="id">ID : <span><?php echo $playlistId; ?></span> </h2>
-        </DIV>
+            foreach ($playlistIds as $index => $playlistId) {
+                $curl = curl_init();
 
-        <table class="table table-bordered" id="tableInfos">
-            <THEAD class="">
-                <TR>
-                    <Th scope="col">Conteudo</Th>
-                    <Th scope="col">Itens</Th>
-                </TR>
-            </THEAD>
-            <tbody>
-                <?php
-                // Initialize $totalSize outside the loop
-                $totalSize = 0;
+                curl_setopt_array($curl, array(
+                    CURLOPT_URL => 'https://api.4yousee.com.br/v1/playlists/' . $playlistId,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING => '',
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 0,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST => 'GET',
+                    CURLOPT_HTTPHEADER => array(
+                        'Secret-Token: 809ea74915c0fdc86f9844f8960a65bf'
+                    ),
+                ));
+                $response = curl_exec($curl);
+                curl_close($curl);
+                $data = json_decode($response, true);
+                $playlistName = $data["name"];
+                $item = $data["items"];
+                // ? Playlist
+                $countComunicados = 0;
+                $countPublicidades = 0;
+                $countNoticias = 0;
+                $totalItens = 0;
+                foreach ($item  as $item2) {
+                    // ? Carousel
+                    if ($item2["type"] == "carousel") {
+                        // ? Itens
+                        foreach ($item2["items"] as $item3) {
+                            if (isset($item3["contentSchedule"]["endDate"])) {
 
-                foreach ($data["items"] as $item) :
-                    if (isset($item["type"]) && $item["type"] === "carousel") :
-                ?>
-                        <tr>
-                            <td scope="row" id="nameContent"><?php echo $item["name"]; ?></td>
-                            <?php
-                            if (isset($item["sequence"]) && is_array($item["sequence"])) {
-                                if (stripos($item["name"], "Comunicado") !== false || stripos($item["name"], "Publicidade") !== false) {
-                                    $itemSize = sizeof($item["sequence"]) * 2;
-                                } else {
-                                    $itemSize = sizeof($item["sequence"]);
+                                if ($item3["contentSchedule"]["endDate"] < $today) {
+                                    echo "<script>console.log('Vencido [" . $item3["id"] . "]')</script>";
+                                    continue;
                                 }
-                            } else {
-                                $itemSize = 1;
                             }
-                            ?>
-                            <td scope="row" id="totalItens"><?php echo $itemSize; ?></td>
-                        </tr>
-                <?php
-                        // Increment $totalSize inside the loop for each item
-                        $totalSize += $itemSize;
-                    endif;
-                endforeach;
-                ?>
-            </tbody>
 
-            <div class="totalAllItensBox">
-                <h2 class="totalAllItens <?php echo ($totalSize > 18) ? 'red-text' : 'green-text'; ?>">Total de Itens : <span><?php echo $totalSize; ?></span></h2>
-            </div>
+                            if (isset($item3["playlistSchedule"]["endDate"])) {
+
+                                if ($item3["playlistSchedule"]["endDate"] < $today) {
+                                    echo "<script>console.log('Vencido [" . $item3["id"] . "]')</script>";
+                                    continue;
+                                }
+                            }
+
+                            if (isset($item3["contentSchedule"]["startDate"])) {
+
+                                if ($item3["contentSchedule"]["startDate"] > $today) {
+                                    echo "<script>console.log('Ainda não começou [" . $item3["id"] . "]')</script>";
+                                    continue;
+                                }
+                            }
+                            if (isset($item3["playlistSchedule"]["startDate"])) {
+
+                                if ($item3["playlistSchedule"]["startDate"] > $today) {
+                                    echo "<script>console.log('Ainda não começou [" . $item3["id"] . "]')</script>";
+                                    continue;
+                                }
+                            }
+                            if (strpos($item2["name"], 'Comuni') !== false) {
+                                $countComunicados++;
+                            }
+                            if (strpos($item2["name"], 'Publi') !== false) {
+                                $countPublicidades++;
+                            }
+                            if (strpos($item2["name"], 'Notícias') !== false) {
+                                $countNoticias++;
+                            }
+                            $totalItens++;
+                        }
+                        echo "<script>console.log('Total de Itens: " . $totalItens . "')</script>";
+                    } else {
+                        $countNoticias++;
+                        $totalItens++;
+                    }
+                }
+            ?>
+                <tr class="row w-100">
+                    <th class="col"><?php echo $playlistName; ?></th>
+                    <th class="col"><?php echo $countPublicidades; ?></th>
+                    <th class="col"><?php echo $countComunicados; ?></th>
+                    <th class="col"><?php echo $countNoticias; ?></th>
+                    <th class="col <?= $totalItens > 30 ? 'red-text' : 'green-texts'; ?>"><?php echo $totalItens; ?></th>
+                </tr>
+            <?php
+            }
+            ?>
         </table>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 </body>
 
 </html>
